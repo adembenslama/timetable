@@ -1,0 +1,10 @@
+{
+  "/users*": "/600/users$1",
+  "/subjects": "/600/subjects",
+  "/subjects/*": "/660/subjects/$1",
+  "/rooms": "/600/rooms",
+  "/rooms/*": "/660/rooms/$1",
+  "/sessions": "/600/sessions",
+  "/sessions/*": "/660/sessions/$1",
+  "/classes*": "/600/classes$1"
+} 

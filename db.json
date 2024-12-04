@@ -1,0 +1,163 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "name": "Admin User",
+      "email": "admin@example.com",
+      "password": "admin123",
+      "role": "admin",
+      "isEmailVerified": true,
+      "isActive": true,
+      "lastLogin": "2024-03-15T10:00:00Z",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-03-15T10:00:00Z"
+    },
+    {
+      "id": "2",
+      "name": "Teacher Smith",
+      "email": "smith@example.com",
+      "password": "teacher123",
+      "role": "teacher",
+      "isEmailVerified": true,
+      "isActive": true,
+      "lastLogin": "2024-03-15T09:00:00Z",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-03-15T09:00:00Z"
+    },
+    {
+      "id": "3",
+      "name": "Student John",
+      "email": "john@example.com",
+      "password": "student123",
+      "role": "student",
+      "isEmailVerified": true,
+      "isActive": true,
+      "lastLogin": "2024-03-15T08:00:00Z",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-03-15T08:00:00Z"
+    },
+    {
+      "id": "1733258440548",
+      "name": "adem",
+      "email": "adembenslama2003@gmail.com",
+      "password": "ademadem",
+      "role": "admin",
+      "isEmailVerified": false,
+      "isActive": true,
+      "lastLogin": "2024-12-03T21:40:40.548649",
+      "createdAt": "2024-12-03T21:40:40.548861",
+      "updatedAt": "2024-12-03T21:40:40.548908"
+    }
+  ],
+  "subjects": [
+    {
+      "id": "1",
+      "name": "Mathematics",
+      "code": "MATH101",
+      "description": "Basic Mathematics Course",
+      "credits": 3,
+      "isActive": true,
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "2",
+      "name": "Physics",
+      "code": "PHY101",
+      "description": "Introduction to Physics",
+      "credits": 4,
+      "isActive": true,
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "rooms": [
+    {
+      "id": "1",
+      "name": "Room 101",
+      "building": "Main Building",
+      "capacity": 30,
+      "isActive": true,
+      "facilities": [
+        "projector",
+        "whiteboard"
+      ],
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "2",
+      "name": "Room 102",
+      "building": "Main Building",
+      "capacity": 25,
+      "isActive": true,
+      "facilities": [
+        "whiteboard"
+      ],
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "classes": [
+    {
+      "id": "1",
+      "name": "Math Class A",
+      "subjectId": "1",
+      "studentIds": [
+        "3"
+      ],
+      "capacity": 30,
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "2",
+      "name": "Physics Class A",
+      "subjectId": "2",
+      "studentIds": [
+        "3"
+      ],
+      "capacity": 25,
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "sessions": [
+    {
+      "id": "1733266491650",
+      "classId": "_selectedClassId",
+      "teacherId": "_selectedTeacherId",
+      "roomId": "2",
+      "startTime": "2024-12-03T23:54:48.276286",
+      "endTime": "2024-12-04T01:54:48.276344",
+      "recurrenceRule": "tuesday",
+      "isActive": true,
+      "createdAt": "2024-12-03T23:54:51.677787",
+      "updatedAt": "2024-12-03T23:54:51.679199"
+    },
+    {
+      "id": "1733266508900",
+      "classId": "1",
+      "teacherId": "2",
+      "roomId": "1",
+      "startTime": "2024-12-03T23:55:05.843031",
+      "endTime": "2024-12-04T01:55:05.843046",
+      "recurrenceRule": "tuesday",
+      "isActive": true,
+      "createdAt": "2024-12-03T23:55:08.914499",
+      "updatedAt": "2024-12-03T23:55:08.914819"
+    },
+    {
+      "id": "1733303578112",
+      "classId": "_selectedClassId",
+      "teacherId": "_selectedTeacherId",
+      "roomId": "1",
+      "startTime": "2024-12-04T08:00:00.000",
+      "endTime": "2024-12-04T10:00:00.000",
+      "recurrenceRule": "monday",
+      "isActive": true,
+      "createdAt": "2024-12-04T10:12:58.128414",
+      "updatedAt": "2024-12-04T10:12:58.128495"
+    }
+  ]
+}
