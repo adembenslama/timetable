@@ -89,43 +89,7 @@ class _SessionFormDialogState extends State<SessionFormDialog> {
   @override
   void initState() {
     super.initState();
-    
-    // Initialize times
-    _startTime = widget.session?.startTime ?? DateTime.now();
-    _endTime = widget.session?.endTime ?? DateTime.now().add(const Duration(hours: 2));
-
-    // Load data first
-    _loadData().then((_) {
-      if (!mounted) return;
-      
-      setState(() {
-        if (widget.session != null) {
-          // Editing existing session
-          _selectedClassId = _classes.any((c) => c.id == widget.session!.classId) 
-              ? widget.session!.classId 
-              : null;
-          _selectedTeacherId = _teachers.any((t) => t.id == widget.session!.teacherId) 
-              ? widget.session!.teacherId 
-              : null;
-          _selectedRoomId = _rooms.any((r) => r.id == widget.session!.roomId) 
-              ? widget.session!.roomId 
-              : null;
-          _selectedDay = widget.session!.recurrenceRule?.toLowerCase();
-        } else {
-          // New session with prefilled values
-          _selectedClassId = widget.prefilledClassId != null && 
-              _classes.any((c) => c.id == widget.prefilledClassId)
-              ? widget.prefilledClassId 
-              : null;
-          _selectedTeacherId = widget.prefilledTeacherId != null && 
-              _teachers.any((t) => t.id == widget.prefilledTeacherId)
-              ? widget.prefilledTeacherId 
-              : null;
-          _selectedDay = widget.prefilledDay?.toLowerCase();
-          _selectedTimeSlot = widget.prefilledTimeSlot;
-        }
-      });
-    });
+    _loadData();
   }
 
   Future<void> _loadData() async {
@@ -135,26 +99,46 @@ class _SessionFormDialogState extends State<SessionFormDialog> {
         _errorMessage = null;
       });
 
-      final userRepo = Get.find<UserRepository>();
       final classRepo = Get.find<ClassRepository>();
+      final userRepo = Get.find<UserRepository>();
       final roomRepo = Get.find<RoomRepository>();
       final subjectRepo = Get.find<SubjectRepository>();
 
       final futures = await Future.wait([
-        userRepo.getTeachers(),
         classRepo.getClasses(),
+        userRepo.getTeachers(),
         roomRepo.getRooms(),
         subjectRepo.getSubjects(),
       ]);
 
       setState(() {
-        _teachers = futures[0] as List<User>;
-        _classes = futures[1] as List<Class>;
+        _classes = futures[0] as List<Class>;
+        _teachers = futures[1] as List<User>;
         _rooms = futures[2] as List<Room>;
         _subjects = futures[3] as List<Subject>;
+
+        // Initialize times
+        _startTime = widget.session?.startTime ?? DateTime.now();
+        _endTime = widget.session?.endTime ?? DateTime.now().add(const Duration(hours: 2));
+
+        // Set initial values
+        if (widget.session != null) {
+          _selectedClassId = widget.session!.classId;
+          _selectedTeacherId = widget.session!.teacherId;
+          _selectedRoomId = widget.session!.roomId;
+          _selectedDay = widget.session!.recurrenceRule?.toLowerCase();
+        } else {
+          // For new sessions, use prefilled values if available
+          _selectedClassId = widget.prefilledClassId?.isNotEmpty == true ? widget.prefilledClassId : null;
+          _selectedTeacherId = widget.prefilledTeacherId?.isNotEmpty == true ? widget.prefilledTeacherId : null;
+          _selectedDay = widget.prefilledDay?.toLowerCase();
+          _selectedTimeSlot = widget.prefilledTimeSlot;
+        }
+
         _isLoading = false;
       });
     } catch (e) {
+      print('Error loading data: $e');
       setState(() {
         _errorMessage = 'Failed to load data: $e';
         _isLoading = false;
@@ -227,31 +211,29 @@ class _SessionFormDialogState extends State<SessionFormDialog> {
                       style: const TextStyle(color: Colors.red),
                     ),
                   ),
-                if (widget.prefilledClassId == null)
-                  _buildClassDropdown(),
-                if (widget.prefilledTeacherId == null)
-                  DropdownButtonFormField<String>(
-                    value: _selectedTeacherId,
-                    decoration: const InputDecoration(
-                      labelText: 'Teacher',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: _teachers.map((teacher) {
-                      return DropdownMenuItem(
-                        value: teacher.id,
-                        child: Text(teacher.name),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() => _selectedTeacherId = value);
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please select a teacher';
-                      }
-                      return null;
-                    },
+                _buildClassDropdown(),
+                DropdownButtonFormField<String>(
+                  value: _selectedTeacherId,
+                  decoration: const InputDecoration(
+                    labelText: 'Teacher',
+                    border: OutlineInputBorder(),
                   ),
+                  items: _teachers.map((teacher) {
+                    return DropdownMenuItem(
+                      value: teacher.id,
+                      child: Text(teacher.name),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() => _selectedTeacherId = value);
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please select a teacher';
+                    }
+                    return null;
+                  },
+                ),
                 DropdownButtonFormField<String>(
                   value: _selectedRoomId,
                   decoration: const InputDecoration(
@@ -299,7 +281,6 @@ class _SessionFormDialogState extends State<SessionFormDialog> {
                   ),
                 if (widget.prefilledTimeSlot == null)
                   _buildTimeSlotSelector(),
-                _buildSubjectDropdown(),
               ],
             ],
           ),
@@ -370,12 +351,21 @@ class _SessionFormDialogState extends State<SessionFormDialog> {
         labelText: 'Class',
         border: OutlineInputBorder(),
       ),
-      items: _classes.map((classItem) => DropdownMenuItem(
-        value: classItem.id,
-        child: Text(classItem.name),
-      )).toList(),
+      items: [
+        if (_selectedClassId == null)
+          const DropdownMenuItem(
+            value: '',
+            child: Text('Select a class'),
+          ),
+        ..._classes.map((classItem) => DropdownMenuItem(
+          value: classItem.id,
+          child: Text('${classItem.name} (${_getSubjectName(classItem.subjectId)})'),
+        )),
+      ],
       onChanged: (value) {
-        setState(() => _selectedClassId = value);
+        setState(() {
+          _selectedClassId = value?.isEmpty == true ? null : value;
+        });
       },
       validator: (value) {
         if (value == null || value.isEmpty) {
@@ -386,36 +376,17 @@ class _SessionFormDialogState extends State<SessionFormDialog> {
     );
   }
 
-  Widget _buildSubjectDropdown() {
-    String? _selectedSubjectId;
-    return DropdownButtonFormField<String>(
-      value: _selectedSubjectId,
-      decoration: const InputDecoration(
-        labelText: 'Subject',
-        border: OutlineInputBorder(),
-      ),
-      items: _subjects.map((subject) => DropdownMenuItem(
-        value: subject.id,
-        child: Text(subject.name),
-      )).toList(),
-      onChanged: (value) {
-        setState(() => _selectedSubjectId = value);
-      },
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Please select a subject';
-        }
-        return null;
-      },
-    );
+  String _getSubjectName(String subjectId) {
+    final subject = _subjects.firstWhereOrNull((s) => s.id == subjectId);
+    return subject?.name ?? 'Unknown Subject';
   }
 
   void _submit() async {
     if (_formKey.currentState!.validate()) {
       final session = Session(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
-        classId: "_selectedClassId",
-        teacherId: "_selectedTeacherId",
+        classId: _selectedClassId!,
+        teacherId: _selectedTeacherId!,
         roomId: _selectedRoomId!,
         startTime: _startTime,
         endTime: _endTime,

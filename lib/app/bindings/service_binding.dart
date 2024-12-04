@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:timetable/app/data/services/api_service.dart';
 import 'package:timetable/app/data/repositories/auth_repository.dart';
 import 'package:timetable/app/data/repositories/session_repository.dart';

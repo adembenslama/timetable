@@ -36,6 +36,13 @@ class _UserTimetableViewState extends State<UserTimetableView> {
   final authController = Get.find<AuthController>();
 
   @override
+  void initState() {
+    super.initState();
+    // Fetch sessions for this specific user
+    Get.find<SessionController>().fetchSessionsForUser(widget.user);
+  }
+
+  @override
   void dispose() {
     _horizontalController.dispose();
     super.dispose();
@@ -231,27 +238,43 @@ class _UserTimetableViewState extends State<UserTimetableView> {
   }
 
   Session? _findSession(List<Session> sessions, String day, String timeSlot, User user) {
-    // Admin shouldn't see any sessions in their timetable
-    if (user.isAdmin) return null;
+    print('Finding session for:');
+    print('Day: $day');
+    print('Time slot: $timeSlot');
+    print('Available sessions: ${sessions.length}');
 
-    final startTime = timeSlot.split('-')[0];
+    final startHour = int.parse(timeSlot.split('-')[0].split(':')[0]);
     
     return sessions.firstWhereOrNull((s) {
-      // Check if session is on the same day and time
-      bool sameTimeSlot = s.recurrenceRule?.toLowerCase() == day &&
-                         _formatTime(s.startTime) == startTime;
-      
-      if (!sameTimeSlot) return false;
+      // Debug print session details
+      print('Checking session:');
+      print('Session day: ${s.recurrenceRule}');
+      print('Session hour: ${s.startTime.hour}');
+      print('Session teacher: ${s.teacherId}');
+      print('Session class: ${s.classId}');
 
-      // For teachers, show only their sessions
-      if (user.isTeacher) {
-        return s.teacherId == user.id;
+      // Check day match
+      if (s.recurrenceRule?.toLowerCase() != day.toLowerCase()) {
+        print('Day mismatch');
+        return false;
+      }
+
+      // Check hour match
+      if (s.startTime.hour != startHour) {
+        print('Hour mismatch');
+        return false;
+      }
+
+      // For teachers, show their sessions
+      if (user.isTeacher && s.teacherId == user.id) {
+        print('Teacher session match');
+        return true;
       }
       
-      // For students, show sessions of their class
-      if (user.isStudent) {
-        // TODO: Replace "1" with actual student's class ID
-        return s.classId == "1";
+      // For students, show their class sessions
+      if (user.isStudent && s.classId == "1") { // Using class ID 1 for now
+        print('Student session match');
+        return true;
       }
 
       return false;

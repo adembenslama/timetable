@@ -27,12 +27,31 @@ class SessionController extends GetxController {
       _errorMessage.value = null;
       print('Fetching sessions...');
       final response = await _repository.getSessions();
-      print('Response: $response');
+      print('Sessions fetched: ${response.length}');
+      response.forEach((session) {
+        print('Session: ${session.id}');
+        print('  Day: ${session.recurrenceRule}');
+        print('  Time: ${session.startTime.hour}:00-${session.endTime.hour}:00');
+        print('  Teacher: ${session.teacherId}');
+        print('  Class: ${session.classId}');
+      });
       _sessions.value = response;
-      print('Sessions loaded: ${_sessions.length}');
-    } catch (e, stackTrace) {
+    } catch (e) {
       print('Error fetching sessions: $e');
-      print('Stack trace: $stackTrace');
+      _errorMessage.value = 'Failed to fetch sessions: ${e.toString()}';
+    } finally {
+      _isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchSessionsForUser(User user) async {
+    try {
+      _isLoading.value = true;
+      _errorMessage.value = null;
+      final response = await _repository.getSessionsForUser(user);
+      _sessions.value = response;
+    } catch (e) {
+      print('Error fetching sessions: $e');
       _errorMessage.value = 'Failed to fetch sessions: ${e.toString()}';
     } finally {
       _isLoading.value = false;
@@ -326,5 +345,120 @@ class SessionController extends GetxController {
     bool overlaps = !(aEndMinutes <= bStartMinutes || bEndMinutes <= aStartMinutes);
     print('Overlaps: $overlaps');
     return overlaps;
+  }
+
+  // Add these methods to SessionController
+
+  // Filter sessions by date range
+  Future<List<Session>> getSessionsByDateRange(DateTime start, DateTime end) {
+    return Future.value(_sessions.where((s) {
+      return s.startTime.isAfter(start) && s.endTime.isBefore(end);
+    }).toList());
+  }
+
+  // Filter sessions by teacher
+  List<Session> getSessionsByTeacher(String teacherId) {
+    return _sessions.where((s) => s.teacherId == teacherId).toList();
+  }
+
+  // Filter sessions by room
+  List<Session> getSessionsByRoom(String roomId) {
+    return _sessions.where((s) => s.roomId == roomId).toList();
+  }
+
+  // Filter sessions by class
+  List<Session> getSessionsByClass(String classId) {
+    return _sessions.where((s) => s.classId == classId).toList();
+  }
+
+  // Create recurring session
+  Future<bool> createRecurringSession(Session session, {
+    required int repeatCount,
+    required int intervalDays,
+  }) async {
+    try {
+      for (int i = 0; i < repeatCount; i++) {
+        final newSession = Session(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          classId: session.classId,
+          teacherId: session.teacherId,
+          roomId: session.roomId,
+          startTime: session.startTime.add(Duration(days: i * intervalDays)),
+          endTime: session.endTime.add(Duration(days: i * intervalDays)),
+          recurrenceRule: session.recurrenceRule,
+          isActive: true,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+        await addSession(newSession);
+      }
+      return true;
+    } catch (e) {
+      _errorMessage.value = 'Failed to create recurring sessions: $e';
+      return false;
+    }
+  }
+
+  // Copy session to another time slot
+  Future<bool> copySession(Session session, DateTime newStartTime, DateTime newEndTime) async {
+    try {
+      final newSession = Session(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        classId: session.classId,
+        teacherId: session.teacherId,
+        roomId: session.roomId,
+        startTime: newStartTime,
+        endTime: newEndTime,
+        recurrenceRule: session.recurrenceRule,
+        isActive: true,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+      return addSession(newSession);
+    } catch (e) {
+      _errorMessage.value = 'Failed to copy session: $e';
+      return false;
+    }
+  }
+
+  // Export sessions to calendar
+  Future<String> exportToCalendar() async {
+    // Implement calendar export logic
+    // This is a placeholder - you'll need to implement actual calendar integration
+    final buffer = StringBuffer();
+    buffer.writeln('BEGIN:VCALENDAR');
+    buffer.writeln('VERSION:2.0');
+    
+    for (final session in _sessions) {
+      buffer.writeln('BEGIN:VEVENT');
+      buffer.writeln('SUMMARY:${session.classId}');
+      buffer.writeln('DTSTART:${session.startTime.toIso8601String()}');
+      buffer.writeln('DTEND:${session.endTime.toIso8601String()}');
+      buffer.writeln('LOCATION:Room ${session.roomId}');
+      buffer.writeln('END:VEVENT');
+    }
+    
+    buffer.writeln('END:VCALENDAR');
+    return buffer.toString();
+  }
+
+  // Get session statistics
+  Map<String, dynamic> getSessionStats() {
+    return {
+      'totalSessions': _sessions.length,
+      'activeCount': _sessions.where((s) => s.isActive).length,
+      'byTeacher': _sessions.fold<Map<String, int>>({}, (map, session) {
+        map[session.teacherId] = (map[session.teacherId] ?? 0) + 1;
+        return map;
+      }),
+      'byRoom': _sessions.fold<Map<String, int>>({}, (map, session) {
+        map[session.roomId] = (map[session.roomId] ?? 0) + 1;
+        return map;
+      }),
+      'byClass': _sessions.fold<Map<String, int>>({}, (map, session) {
+        map[session.classId] = (map[session.classId] ?? 0) + 1;
+        return map;
+      }),
+    };
   }
 } 

@@ -34,59 +34,9 @@ class SessionsView extends StatelessWidget {
         children: [
           Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      children: [
-                        TextField(
-                          decoration: const InputDecoration(
-                            prefixIcon: Icon(Icons.search),
-                            hintText: 'Search sessions...',
-                            border: OutlineInputBorder(),
-                          ),
-                          onChanged: (value) {
-                            // TODO: Implement search
-                          },
-                        ),
-                        const SizedBox(height: 8),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: [
-                              FilterChip(
-                                label: const Text('Today'),
-                                selected: false,
-                                onSelected: (bool selected) {
-                                  // TODO: Implement filter
-                                },
-                              ),
-                              const SizedBox(width: 8),
-                              FilterChip(
-                                label: const Text('This Week'),
-                                selected: false,
-                                onSelected: (bool selected) {
-                                  // TODO: Implement filter
-                                },
-                              ),
-                              const SizedBox(width: 8),
-                              FilterChip(
-                                label: const Text('Active'),
-                                selected: false,
-                                onSelected: (bool selected) {
-                                  // TODO: Implement filter
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+                
+                      
+                    
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: () => controller.fetchSessions(),

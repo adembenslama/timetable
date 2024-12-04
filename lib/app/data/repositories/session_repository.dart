@@ -8,9 +8,12 @@ class SessionRepository {
   Future<List<Session>> getSessions() async {
     try {
       final response = await _apiService.get('/sessions');
-      return (response.data as List)
+      final sessions = (response.data as List)
           .map((json) => Session.fromJson(json))
           .toList();
+      
+      print('Fetched ${sessions.length} sessions from API');
+      return sessions;
     } catch (e) {
       print('Error in getSessions: $e');
       rethrow;
@@ -109,5 +112,33 @@ class SessionRepository {
       );
     }
     return sessions;
+  }
+
+  // Get sessions for a specific user
+  Future<List<Session>> getSessionsForUser(User user) async {
+    try {
+      print('Getting sessions for user: ${user.name} (${user.role})');
+      
+      if (user.isTeacher) {
+        print('Fetching teacher sessions for ID: ${user.id}');
+        final response = await _apiService.get('/sessions?teacherId=${user.id}');
+        final sessions = (response.data as List).map((json) => Session.fromJson(json)).toList();
+        print('Found ${sessions.length} sessions for teacher');
+        return sessions;
+      } 
+      
+      if (user.isStudent) {
+        print('Fetching student sessions for class ID: 1');
+        final response = await _apiService.get('/sessions?classId=1');
+        final sessions = (response.data as List).map((json) => Session.fromJson(json)).toList();
+        print('Found ${sessions.length} sessions for student');
+        return sessions;
+      }
+      
+      return [];
+    } catch (e) {
+      print('Error getting sessions for user: $e');
+      rethrow;
+    }
   }
 } 
